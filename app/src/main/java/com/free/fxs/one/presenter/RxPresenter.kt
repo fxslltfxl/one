@@ -22,7 +22,7 @@ class RxPresenter<T : BaseContract.BaseView> : BaseContract.BasePresenter<T> {
         if (mDisposable == null) {
             mDisposable = CompositeDisposable()
         }
-        mDisposable!!.add(disposable)
+        mDisposable?.add(disposable)
     }
 
     private fun unSubscribe() {
