@@ -6,10 +6,10 @@ import io.reactivex.Single
 
 object UserImp {
 
-    private val iUser: IUser?
-        get() = RetrofitHelper.getInstance()?.retrofit?.create(IUser::class.java)
+    private val iUser: IUser
+        get() = RetrofitHelper.getInstance().retrofit.create(IUser::class.java)
 
     fun test(name: String): Single<MutableList<User>> {
-        return iUser!!.test(name)
+        return iUser.test(name)
     }
 }

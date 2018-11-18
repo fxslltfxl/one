@@ -10,11 +10,11 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
 import java.util.concurrent.TimeUnit
 
-class RetrofitHelper {
+class RetrofitHelper private constructor() {
     private var client: OkHttpClient
     var retrofit: Retrofit
 
-    private constructor() {
+    init {
         val file = File(Environment.getExternalStorageDirectory(), "cache")
         val cacheSize: Long = 10 * 1024 * 1024
         client = OkHttpClient().newBuilder()
@@ -23,7 +23,6 @@ class RetrofitHelper {
             .readTimeout(5, TimeUnit.SECONDS)
             .cache(Cache(file.absoluteFile, cacheSize))
             .build()
-
         retrofit = Retrofit.Builder()
             .client(client)
             .baseUrl(UrlConstant.LocalUrl)
@@ -35,7 +34,7 @@ class RetrofitHelper {
     companion object {
         private var instance: RetrofitHelper? = null
         @JvmStatic
-        fun getInstance(): RetrofitHelper? {
+        fun getInstance(): RetrofitHelper {
             if (null == instance) {
                 synchronized(RetrofitHelper::class.java) {
                     if (null == instance) {
@@ -43,7 +42,7 @@ class RetrofitHelper {
                     }
                 }
             }
-            return instance
+            return instance!!
         }
     }
 

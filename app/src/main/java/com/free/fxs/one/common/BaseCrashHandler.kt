@@ -1,7 +1,6 @@
 package com.free.fxs.one.common
 
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
@@ -9,6 +8,7 @@ import android.os.Environment
 import android.os.Looper
 import android.util.Log
 import android.widget.Toast
+import com.free.fxs.one.application.App
 import com.free.fxs.one.application.AppManager
 import java.io.File
 import java.io.FileOutputStream
@@ -18,12 +18,11 @@ import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
-class BaseCrashHandler private constructor(context: Context) : Thread.UncaughtExceptionHandler {
+class BaseCrashHandler private constructor() : Thread.UncaughtExceptionHandler {
     /**
      * 系统默认异常捕获
      */
     private var mDefaultHandler: Thread.UncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler()
-    private var mContext: Context = context
     private var infoLists: MutableMap<String, String> = HashMap()
     private var thread: Thread
     private var formatter: DateFormat
@@ -32,7 +31,7 @@ class BaseCrashHandler private constructor(context: Context) : Thread.UncaughtEx
         Thread.setDefaultUncaughtExceptionHandler(this)
         thread = Thread({
             Looper.prepare()
-            Toast.makeText(mContext, "很抱歉,程序出现异常,即将退出.", Toast.LENGTH_LONG).show()
+            Toast.makeText(App.mContext, "很抱歉,程序出现异常,即将退出.", Toast.LENGTH_LONG).show()
             Looper.loop()
         }, "CatchCrashThread")
         formatter = SimpleDateFormat("yyyy-MM-dd E HH-mm-ss", Locale.CHINA)
@@ -48,7 +47,7 @@ class BaseCrashHandler private constructor(context: Context) : Thread.UncaughtEx
             mDefaultHandler.uncaughtException(thread, ex)
         } else {
             try {
-                Thread.sleep(3000)
+                Thread.sleep(2000)
             } catch (e: InterruptedException) {
                 Log.e("", String.format("error : %s", e))
             }
@@ -64,7 +63,7 @@ class BaseCrashHandler private constructor(context: Context) : Thread.UncaughtEx
         }
         thread.start()
         //收集设备参数信息
-        collectDeviceInfo(mContext)
+        collectDeviceInfo(App.mContext)
         //保存日志文件
         saveCrashInfo2File(ex)
         return true
@@ -118,6 +117,7 @@ class BaseCrashHandler private constructor(context: Context) : Thread.UncaughtEx
             sb.append(key).append("=").append(value).append("\n")
         }
 
+        ex.stackTrace
         val writer = StringWriter()
         val printWriter = PrintWriter(writer)
         ex.printStackTrace(printWriter)
@@ -154,24 +154,18 @@ class BaseCrashHandler private constructor(context: Context) : Thread.UncaughtEx
     }
 
     companion object {
-        @SuppressLint("StaticFieldLeak")
         @Volatile
         private var INSTANCE: BaseCrashHandler? = null
 
-        fun getInstance(context: Context): BaseCrashHandler? {
-            try {
-                if (INSTANCE == null) {
-                    Thread.sleep(100)
-                    synchronized(BaseCrashHandler::class.java) {
-                        if (INSTANCE == null) {
-                            INSTANCE = BaseCrashHandler(context.applicationContext)
-                        }
+        fun getInstance(): BaseCrashHandler? {
+            if (INSTANCE == null) {
+                Thread.sleep(100)
+                synchronized(BaseCrashHandler::class.java) {
+                    if (INSTANCE == null) {
+                        INSTANCE = BaseCrashHandler()
                     }
                 }
-            } catch (e: InterruptedException) {
-                e.printStackTrace()
             }
-
             return INSTANCE
         }
     }
